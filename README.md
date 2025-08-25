@@ -1,112 +1,64 @@
-# AccuKnox
-Questions for Django Trainee at Accuknox 
+# Fraud Detection Case Study
 
-Topic: Django Signals 
+This repository contains a machine learning workflow for detecting fraudulent transactions using a large-scale financial dataset (**6,362,620 rows × 11 columns**). The project demonstrates the end-to-end pipeline — from data preprocessing and feature engineering to model training, evaluation, and business insights.
 
-Question 1: By default are django signals executed synchronously or asynchronously? Please 
-support your answer with a code snippet that conclusively proves your stance. The code does 
-not need to be elegant and production ready, we just need to understand your logic. 
+---
 
+## 📌 Problem Statement
+The objective is to identify fraudulent transactions within financial data and provide actionable business recommendations to minimize future fraud.
 
-Answer:Django signals are executed synchronously by default in the same execution flow as the sender. The reciever function is executed immediately when the signal is sent.
+---
 
+## 📂 Dataset
+- **File:** `Fraud.csv`  
+- **Shape:** 6,362,620 rows × 11 columns  
+- **Key Columns:**
+  - `step`: Time step of the transaction
+  - `type`: Transaction type (`PAYMENT`, `TRANSFER`, `CASH_OUT`, etc.)
+  - `amount`: Transaction amount
+  - `oldbalanceOrg`, `newbalanceOrig`: Account balance changes for origin account
+  - `oldbalanceDest`, `newbalanceDest`: Account balance changes for destination account
+  - `isFraud`: Target variable (1 = Fraud, 0 = Legitimate)
+  - `isFlaggedFraud`: Transactions flagged by rule-based system
 
-#code snippet
+---
 
-from django.dispatch import Signal
-import time
+## ⚙️ Workflow
 
-my_signal = Signal()
+1. **Data Loading**
+   - Import dataset (`Fraud.csv`)
+   - Check missing values, duplicates, and class imbalance
 
-def my_receiver(sender, **kwargs):
-    print("Signal received! Processing...")
-    time.sleep(3) 
-    print("Signal processing complete.")
+2. **Exploratory Data Analysis**
+   - Statistical summary
+   - Fraud distribution visualization
+   - Detection of imbalance in target variable
 
-my_signal.connect(my_receiver)
+3. **Feature Engineering & Preprocessing**
+   - Dropped irrelevant columns (`nameOrig`, `nameDest`)
+   - One-hot encoding for categorical features (`type`)
+   - Feature scaling with `StandardScaler`
 
-print("Emitting signal...")
-my_signal.send(sender=None)
-print("Signal emission complete.")
+4. **Train/Test Split**
+   - 70% training, 30% testing  
+   - Stratified split to maintain class balance
 
+5. **Model Training**
+   - **Random Forest Classifier** used as baseline
+   - Parameters: `n_estimators=100, random_state=42`
 
+6. **Model Evaluation**
+   - Confusion Matrix
+   - Classification Report (Precision, Recall, F1-score)
+   - ROC-AUC Score (`0.993`)
 
-Question 2: Do django signals run in the same thread as the caller? Please support your 
-answer with a code snippet that conclusively proves your stance. The code does not need to be 
-elegant and production ready, we just need to understand your logic. 
+7. **Feature Importance**
+   - Ranked top 10 predictors of fraud
+   - Visualized with horizontal bar chart
 
+---
 
-Answer: Django signals run in the same thread as the sender by default.
+## 📊 Results
 
+- **Confusion Matrix**
 
-#code snippet
-
-from django.dispatch import Signal
-import threading
-
-my_signal = Signal()
-
-def my_receiver(sender, **kwargs):
-    print(f"Receiver running in thread: {threading.current_thread().name}")
-
-my_signal.connect(my_receiver)
-
-print(f"Signal sent from thread: {threading.current_thread().name}")
-my_signal.send(sender=None)
-
-
-
-Question 3: By default do django signals run in the same database transaction as the caller? 
-Please support your answer with a code snippet that conclusively proves your stance. The code 
-does not need to be elegant and production ready, we just need to understand your logic. 
-
-
-Answer:By default, Django signals do not automatically run inside the same databasetransaction as the caller.
-
-
-#code snippet
-from django.db import models, transaction
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-class MyModel(models.Model):
-    name = models.CharField(max_length=100)
-
-@receiver(post_save, sender=MyModel)
-def my_receiver(sender, instance, **kwargs):
-    print("Signal received! Checking transaction status...")
-    print("Inside transaction?", transaction.get_connection().in_atomic_block)
-
-with transaction.atomic():
-    obj = MyModel.objects.create(name="Test")
-    print("Object created inside transaction.")
-
-
-
-
-
-Topic: Custom Classes in Python 
-Description: You are tasked with creating a Rectangle class with the following requirements: 
-1. An instance of the Rectangle class requires length:int and width:int to be 
-initialized. 
-2. We can iterate over an instance of the Rectangle c****lass  
-3. When an instance of the Rectangle class is iterated over, we first get its length in the 
-format: {'length': <VALUE_OF_LENGTH>} followed by the width {width: 
-<VALUE_OF_WIDTH>}
-
-
-
-#code snippet
-
-class Rectangle:
-   def __init__(self, length: int, width: int):
-        self.length = length
-        self.width = width
-
-   def __iter__(self):
-        yield {"length": self.length}
-        yield {"width": self.width}
-
-rect = Rectangle(10, 5)
-for i in rect:
-    print(i)
